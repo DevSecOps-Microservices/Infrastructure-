@@ -1,0 +1,144 @@
+# =============================================================
+# PROMTAIL CONFIGURATION
+# Collects Docker container logs and pushes them to Loki
+# =============================================================
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+# =============================================================
+# Keeps track of the last read position in every log file
+# Prevents duplicate logs after restart
+# =============================================================
+
+positions:
+  filename: /tmp/positions.yaml
+
+# =============================================================
+# Loki Server
+# =============================================================
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+# =============================================================
+# Docker Service Discovery
+# Automatically discovers every running container
+# =============================================================
+
+scrape_configs:
+
+  - job_name: docker
+
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+
+    relabel_configs:
+
+      # -------------------------------------------------------
+      # Container name
+      # -------------------------------------------------------
+      - source_labels:
+          - __meta_docker_container_name
+        regex: '/(.*)'
+        target_label: container
+
+      # -------------------------------------------------------
+      # Docker image
+      # -------------------------------------------------------
+      - source_labels:
+          - __meta_docker_container_image
+        target_label: image
+
+      # -------------------------------------------------------
+      # Docker compose service
+      # -------------------------------------------------------
+      - source_labels:
+          - __meta_docker_container_label_com_docker_compose_service
+        target_label: service
+
+      # -------------------------------------------------------
+      # Docker compose project
+      # -------------------------------------------------------
+      - source_labels:
+          - __meta_docker_container_label_com_docker_compose_project
+        target_label: project
+
+      # -------------------------------------------------------
+      # Log stream
+      # -------------------------------------------------------
+      - source_labels:
+          - __meta_docker_container_log_stream
+        target_label: stream
+
+      # -------------------------------------------------------
+      # Application Layer
+      # -------------------------------------------------------
+      - source_labels:
+          - __meta_docker_container_name
+        regex: '/(gateway-service|service-incident|service-user|comment-service|chat-service)'
+        replacement: application
+        target_label: layer
+
+      # -------------------------------------------------------
+      # Platform Layer
+      # -------------------------------------------------------
+      - source_labels:
+          - __meta_docker_container_name
+        regex: '/(config-server|eureka-service)'
+        replacement: platform
+        target_label: layer
+
+      # -------------------------------------------------------
+      # Infrastructure Layer
+      # -------------------------------------------------------
+      - source_labels:
+          - __meta_docker_container_name
+        regex: '/(postgres-.*|keycloak|minio|minio-init)'
+        replacement: infrastructure
+        target_label: layer
+
+      # -------------------------------------------------------
+      # Monitoring Layer
+      # -------------------------------------------------------
+      - source_labels:
+          - __meta_docker_container_name
+        regex: '/(prometheus|grafana|loki|promtail|alertmanager)'
+        replacement: monitoring
+        target_label: layer
+
+    pipeline_stages:
+
+      # -------------------------------------------------------
+      # Parse JSON logs when possible
+      # -------------------------------------------------------
+      - json:
+          expressions:
+            timestamp: "@timestamp"
+            level: level
+            logger: logger_name
+            thread: thread_name
+            message: message
+
+      # -------------------------------------------------------
+      # Add parsed values as Loki labels
+      # -------------------------------------------------------
+      - labels:
+          level:
+          logger:
+
+      # -------------------------------------------------------
+      # Keep original timestamp if available
+      # -------------------------------------------------------
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+
+      # -------------------------------------------------------
+      # Drop DEBUG logs
+      # -------------------------------------------------------
+      - match:
+          selector: '{level="DEBUG"}'
+          action: drop

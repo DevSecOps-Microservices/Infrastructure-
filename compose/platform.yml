@@ -1,0 +1,82 @@
+version: '3.8'
+
+# =============================================================
+# PLATFORM LAYER
+# Eureka (Service Discovery) + Config-server (Centralized Config + Vault)
+# =============================================================
+
+services:
+
+  # ===========================================================
+  # EUREKA - Service Discovery
+  # ===========================================================
+
+  eureka-service:
+    image: ghcr.io/devsecops-microservices/eureka-service:latest
+    container_name: eureka-service
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_APPLICATION_NAME: eureka-service
+      SERVER_PORT: 8761
+    networks:
+      - incidents-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8761/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ===========================================================
+  # CONFIG-SERVER - Centralized Configuration + Vault Middleware
+  # ===========================================================
+
+  config-server:
+    image: ghcr.io/devsecops-microservices/config-server:latest
+    container_name: config-server
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_APPLICATION_NAME: config-server
+      SERVER_PORT: 8888
+      SPRING_PROFILES_ACTIVE: git,vault
+      GIT_TOKEN: ${GIT_TOKEN}
+      VAULT_ADDR: ${VAULT_ADDR}
+      VAULT_PORT: ${VAULT_PORT}
+      VAULT_TOKEN: ${VAULT_TOKEN}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+    networks:
+      - incidents-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8888/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+networks:
+  incidents-network:
+    external: true
+    name: incidents-network

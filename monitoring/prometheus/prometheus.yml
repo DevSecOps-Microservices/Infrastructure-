@@ -1,0 +1,101 @@
+# =============================================================
+# Prometheus Configuration
+# Scrapes metrics from all microservices via /actuator/prometheus
+# Sends alerts to Alertmanager when rules are triggered
+# =============================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# ===========================================================
+# Alertmanager Connection
+# ===========================================================
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# ===========================================================
+# Alert Rules Files
+# ===========================================================
+rule_files:
+  - /etc/prometheus/alert-rules.yml
+
+# ===========================================================
+# Scrape Configs
+# ===========================================================
+scrape_configs:
+
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090
+        labels:
+          application: prometheus
+          layer: monitoring
+
+  - job_name: eureka-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - eureka-service:8761
+        labels:
+          application: eureka-service
+          layer: platform
+
+  - job_name: config-server
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - config-server:8888
+        labels:
+          application: config-server
+          layer: platform
+
+  - job_name: gateway-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - gateway-service:8880
+        labels:
+          application: gateway-service
+          layer: application
+
+  - job_name: service-incident
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - service-incident:8082
+        labels:
+          application: service-incident
+          layer: application
+
+  - job_name: service-user
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - service-user:8081
+        labels:
+          application: service-user
+          layer: application
+
+  - job_name: comment-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - comment-service:8083
+        labels:
+          application: comment-service
+          layer: application
+
+  - job_name: chat-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - chat-service:8085
+        labels:
+          application: chat-service
+          layer: application

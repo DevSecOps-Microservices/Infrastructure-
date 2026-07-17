@@ -1,0 +1,136 @@
+# =============================================================
+# Alertmanager Configuration
+# Receives alerts from Prometheus and routes them to receivers.
+# Current notification channel: Email (SMTP)
+# =============================================================
+
+global:
+  resolve_timeout: 5m
+
+  smtp_smarthost: smtp.gmail.com:587
+  smtp_from: devsecops.incidents@gmail.com
+  smtp_auth_username: devsecops.incidents@gmail.com
+  smtp_auth_password: ${SMTP_PASSWORD}
+  smtp_require_tls: true
+
+# =============================================================
+# Alert Routing
+# =============================================================
+
+route:
+  receiver: default-email
+
+  group_by:
+    - alertname
+    - severity
+    - application
+
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 2h
+
+  routes:
+
+    # Security incidents
+    - matchers:
+        - category="security"
+      receiver: security-email
+
+    # Critical alerts
+    - matchers:
+        - severity="critical"
+      receiver: critical-email
+
+    # Infrastructure alerts
+    - matchers:
+        - layer="infrastructure"
+      receiver: infrastructure-email
+
+# =============================================================
+# Alert Suppression
+# =============================================================
+
+inhibit_rules:
+
+  # If a service is down, suppress its performance alerts.
+  - source_matchers:
+      - alertname="ServiceDown"
+
+    target_matchers:
+      - severity="warning"
+
+    equal:
+      - application
+
+# =============================================================
+# Receivers
+# =============================================================
+
+receivers:
+
+  ##############################################################
+  # Default Receiver
+  ##############################################################
+
+  - name: default-email
+
+    email_configs:
+      - to: devsecops.team@gmail.com
+        send_resolved: true
+        subject: |
+          [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
+
+        html: |
+          <h2>DevSecOps Alert</h2>
+
+          <p><b>Application:</b> {{ .CommonLabels.application }}</p>
+          <p><b>Severity:</b> {{ .CommonLabels.severity }}</p>
+          <p><b>Layer:</b> {{ .CommonLabels.layer }}</p>
+
+          <hr>
+
+          {{ range .Alerts }}
+          <p><b>{{ .Annotations.summary }}</b></p>
+          <p>{{ .Annotations.description }}</p>
+          {{ end }}
+
+          <p>
+          Grafana Dashboard:
+          http://localhost:3001
+          </p>
+
+  ##############################################################
+  # Critical Alerts
+  ##############################################################
+
+  - name: critical-email
+
+    email_configs:
+      - to: devsecops.team@gmail.com
+        send_resolved: true
+        subject: |
+           CRITICAL - {{ .CommonLabels.alertname }}
+
+  ##############################################################
+  # Security Alerts
+  ##############################################################
+
+  - name: security-email
+
+    email_configs:
+      - to: devsecops.team@gmail.com
+        send_resolved: true
+        subject: |
+           SECURITY INCIDENT - {{ .CommonLabels.alertname }}
+
+  ##############################################################
+  # Infrastructure Alerts
+  ##############################################################
+
+  - name: infrastructure-email
+
+    email_configs:
+      - to: devsecops.team@gmail.com
+        send_resolved: true
+        subject: |
+           INFRASTRUCTURE - {{ .CommonLabels.alertname }}

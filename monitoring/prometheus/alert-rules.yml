@@ -1,0 +1,200 @@
+# =============================================================
+# Prometheus Alert Rules
+# Secure DevSecOps Project
+#
+# Covers:
+# - Service availability
+# - Performance
+# - Security monitoring
+# - Database health
+#
+# Alerts are forwarded to Alertmanager.
+# =============================================================
+
+groups:
+
+# =============================================================
+# SERVICE AVAILABILITY
+# =============================================================
+- name: service-availability
+
+  rules:
+
+  - alert: ServiceDown
+    expr: up{job!="prometheus"} == 0
+    for: 1m
+
+    labels:
+      severity: critical
+
+    annotations:
+      summary: "{{ $labels.job }} is DOWN"
+      description: >
+        Prometheus has been unable to scrape
+        {{ $labels.job }}
+        for more than one minute.
+
+
+  - alert: GatewayDown
+    expr: up{job="gateway-service"} == 0
+    for: 30s
+
+    labels:
+      severity: critical
+
+    annotations:
+      summary: Gateway unavailable
+      description: >
+        API Gateway is unavailable.
+        Clients cannot access the platform.
+
+
+# =============================================================
+# PERFORMANCE
+# =============================================================
+- name: performance
+
+  rules:
+
+  - alert: HighCPUUsage
+    expr: process_cpu_usage > 0.80
+    for: 5m
+
+    labels:
+      severity: warning
+
+    annotations:
+      summary: High CPU usage
+      description: >
+        CPU usage is above 80%
+        on {{ $labels.job }}.
+
+
+  - alert: HighMemoryUsage
+    expr: |
+      jvm_memory_used_bytes{area="heap"}
+      /
+      jvm_memory_max_bytes{area="heap"}
+      > 0.85
+    for: 5m
+
+    labels:
+      severity: warning
+
+    annotations:
+      summary: High JVM Heap Usage
+      description: >
+        Heap usage exceeded 85%
+        on {{ $labels.job }}.
+
+
+  - alert: HighErrorRate
+    expr: |
+      (
+      rate(http_server_requests_seconds_count{status=~"5.."}[5m])
+      /
+      rate(http_server_requests_seconds_count[5m])
+      ) > 0.05
+    for: 2m
+
+    labels:
+      severity: critical
+
+    annotations:
+      summary: High HTTP 5xx rate
+      description: >
+        More than 5% of HTTP requests
+        are returning server errors.
+
+
+# =============================================================
+# SECURITY
+# =============================================================
+- name: security
+
+  rules:
+
+  - alert: Excessive401Responses
+    expr: |
+      rate(http_server_requests_seconds_count{status="401"}[5m]) > 5
+    for: 2m
+
+    labels:
+      severity: critical
+
+    annotations:
+      summary: Possible brute-force attack
+      description: >
+        High number of HTTP 401 responses
+        detected on {{ $labels.job }}.
+
+
+  - alert: Excessive403Responses
+    expr: |
+      rate(http_server_requests_seconds_count{status="403"}[5m]) > 5
+    for: 2m
+
+    labels:
+      severity: warning
+
+    annotations:
+      summary: Possible privilege abuse
+      description: >
+        High number of HTTP 403 responses
+        detected on {{ $labels.job }}.
+
+
+  - alert: AbnormalTrafficSpike
+    expr: |
+      rate(http_server_requests_seconds_count[1m]) > 100
+    for: 1m
+
+    labels:
+      severity: critical
+
+    annotations:
+      summary: Abnormally high traffic
+      description: >
+        Request rate exceeded
+        100 requests/second.
+        Possible DoS or scanning activity.
+
+
+# =============================================================
+# DATABASE
+# =============================================================
+- name: database
+
+  rules:
+
+  - alert: DatabaseConnectionPoolNearlyFull
+    expr: |
+      hikaricp_connections_active
+      /
+      hikaricp_connections_max
+      > 0.90
+    for: 2m
+
+    labels:
+      severity: warning
+
+    annotations:
+      summary: Connection pool nearly exhausted
+      description: >
+        More than 90% of HikariCP
+        connections are currently in use.
+
+
+  - alert: DatabaseConnectionsTimeout
+    expr: |
+      increase(hikaricp_connections_timeout_total[5m]) > 0
+    for: 1m
+
+    labels:
+      severity: critical
+
+    annotations:
+      summary: Database connection timeout
+      description: >
+        HikariCP reported connection
+        timeouts during the last five minutes.

@@ -1,0 +1,212 @@
+version: '3.8'
+
+# =============================================================
+# APPLICATION LAYER
+# All Microservices + API Gateway
+# Configuration served by config-server (which fetches from
+# config-repo on GitHub and secrets from Vault)
+# =============================================================
+
+services:
+
+  # ===========================================================
+  # SERVICE-INCIDENT
+  # ===========================================================
+
+  service-incident:
+    image: ghcr.io/devsecops-microservices/service-incident:latest
+    container_name: service-incident
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_APPLICATION_NAME: service-incident
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres-incident:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_healthy
+    networks:
+      - incidents-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ===========================================================
+  # SERVICE-USER
+  # ===========================================================
+
+  service-user:
+    image: ghcr.io/devsecops-microservices/service-user:latest
+    container_name: service-user
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_APPLICATION_NAME: service-user
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres-user:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - incidents-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ===========================================================
+  # COMMENT-SERVICE
+  # ===========================================================
+
+  comment-service:
+    image: ghcr.io/devsecops-microservices/comment-service:latest
+    container_name: comment-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_APPLICATION_NAME: comment-service
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres-comment:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_healthy
+    networks:
+      - incidents-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ===========================================================
+  # CHAT-SERVICE
+  # ===========================================================
+
+  chat-service:
+    image: ghcr.io/devsecops-microservices/chat-service:latest
+    container_name: chat-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_APPLICATION_NAME: chat-service
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    depends_on:
+      config-server:
+        condition: service_healthy
+      postgres-chat:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - incidents-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8085/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ===========================================================
+  # GATEWAY-SERVICE - Single entry point for all requests
+  # ===========================================================
+
+  gateway-service:
+    image: ghcr.io/devsecops-microservices/gateway-service:latest
+    container_name: gateway-service
+    restart: unless-stopped
+    ports:
+      - "8880:8880"
+    environment:
+      SPRING_APPLICATION_NAME: gateway-service
+      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-service:
+        condition: service_healthy
+      service-incident:
+        condition: service_healthy
+      service-user:
+        condition: service_healthy
+      comment-service:
+        condition: service_healthy
+      chat-service:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - incidents-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8880/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.50'
+          memory: 256M
+
+networks:
+  incidents-network:
+    external: true
+    name: incidents-network

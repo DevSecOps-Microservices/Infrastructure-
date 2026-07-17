@@ -1,0 +1,27 @@
+# =============================================================
+# Grafana Dashboard Provisioning
+# Automatically loads dashboard JSON files at startup.
+# Dashboards are managed as code and stored in Git.
+# =============================================================
+
+apiVersion: 1
+
+providers:
+
+  - name: IncidentHub Dashboards
+
+    orgId: 1
+
+    folder: ""
+
+    type: file
+
+    disableDeletion: false
+
+    editable: true
+
+    updateIntervalSeconds: 30
+
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: true
