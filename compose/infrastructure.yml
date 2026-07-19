@@ -1,5 +1,3 @@
-version: '3.8'
-
 # =============================================================
 # INFRASTRUCTURE LAYER
 # PostgreSQL (x5) + MinIO + Keycloak

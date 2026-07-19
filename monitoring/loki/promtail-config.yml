@@ -116,7 +116,7 @@ scrape_configs:
       # -------------------------------------------------------
       - json:
           expressions:
-            timestamp: "@timestamp"
+            timestamp: '"@timestamp"'
             level: level
             logger: logger_name
             thread: thread_name

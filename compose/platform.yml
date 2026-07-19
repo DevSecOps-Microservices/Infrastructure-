@@ -1,5 +1,3 @@
-version: '3.8'
-
 # =============================================================
 # PLATFORM LAYER
 # Eureka (Service Discovery) + Config-server (Centralized Config + Vault)

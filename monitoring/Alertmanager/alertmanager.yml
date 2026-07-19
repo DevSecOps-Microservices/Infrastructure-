@@ -18,7 +18,7 @@ global:
 # =============================================================
 
 route:
-  receiver: default-email
+  receiver: default-receiver
 
   group_by:
     - alertname
@@ -34,17 +34,17 @@ route:
     # Security incidents
     - matchers:
         - category="security"
-      receiver: security-email
+      receiver: security-receiver
 
     # Critical alerts
     - matchers:
         - severity="critical"
-      receiver: critical-email
+      receiver: critical-receiver
 
     # Infrastructure alerts
     - matchers:
         - layer="infrastructure"
-      receiver: infrastructure-email
+      receiver: infrastructure-receiver
 
 # =============================================================
 # Alert Suppression
@@ -68,69 +68,22 @@ inhibit_rules:
 
 receivers:
 
-  ##############################################################
-  # Default Receiver
-  ##############################################################
-
-  - name: default-email
-
+  - name: default-receiver
     email_configs:
-      - to: devsecops.team@gmail.com
+      - to: "devsecops.team@gmail.com"
         send_resolved: true
-        subject: |
-          [{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}
 
-        html: |
-          <h2>DevSecOps Alert</h2>
-
-          <p><b>Application:</b> {{ .CommonLabels.application }}</p>
-          <p><b>Severity:</b> {{ .CommonLabels.severity }}</p>
-          <p><b>Layer:</b> {{ .CommonLabels.layer }}</p>
-
-          <hr>
-
-          {{ range .Alerts }}
-          <p><b>{{ .Annotations.summary }}</b></p>
-          <p>{{ .Annotations.description }}</p>
-          {{ end }}
-
-          <p>
-          Grafana Dashboard:
-          http://localhost:3001
-          </p>
-
-  ##############################################################
-  # Critical Alerts
-  ##############################################################
-
-  - name: critical-email
-
+  - name: critical-receiver
     email_configs:
-      - to: devsecops.team@gmail.com
+      - to: "devsecops.team@gmail.com"
         send_resolved: true
-        subject: |
-           CRITICAL - {{ .CommonLabels.alertname }}
 
-  ##############################################################
-  # Security Alerts
-  ##############################################################
-
-  - name: security-email
-
+  - name: security-receiver
     email_configs:
-      - to: devsecops.team@gmail.com
+      - to: "devsecops.team@gmail.com"
         send_resolved: true
-        subject: |
-           SECURITY INCIDENT - {{ .CommonLabels.alertname }}
 
-  ##############################################################
-  # Infrastructure Alerts
-  ##############################################################
-
-  - name: infrastructure-email
-
+  - name: infrastructure-receiver
     email_configs:
-      - to: devsecops.team@gmail.com
+      - to: "devsecops.team@gmail.com"
         send_resolved: true
-        subject: |
-           INFRASTRUCTURE - {{ .CommonLabels.alertname }}
