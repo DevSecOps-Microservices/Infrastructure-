@@ -48,6 +48,7 @@ services:
     environment:
       SPRING_APPLICATION_NAME: config-server
       SPRING_PROFILES_ACTIVE: git,vault
+      GIT_USERNAME: ${GIT_USERNAME}
       GIT_TOKEN: ${GIT_TOKEN}
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_PORT: ${VAULT_PORT}
