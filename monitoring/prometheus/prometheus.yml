@@ -99,3 +99,10 @@ scrape_configs:
         labels:
           application: chat-service
           layer: application
+  - job_name: "cadvisor"
+    static_configs:
+      - targets:
+          - cadvisor:8080
+        labels:
+          application: cadvisor
+          layer: monitoring

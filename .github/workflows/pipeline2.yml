@@ -1,0 +1,133 @@
+name: Pipeline 2 - Platform Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+  security-events: write
+
+jobs:
+
+  deploy-platform:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Infrastructure Repository
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      #######################################################
+      # Deploy Infrastructure
+      #######################################################
+
+      - name: Deploy Infrastructure
+        run: |
+          docker compose \
+            --env-file compose/.env \
+            --env-file compose/versions.env \
+            -f compose/infrastructure.yml \
+            up -d
+
+      - name: Wait for Infrastructure
+        run: sleep 90
+
+      #######################################################
+      # Deploy Platform
+      #######################################################
+
+      - name: Deploy Platform
+        run: |
+          docker compose \
+            --env-file compose/.env \
+            --env-file compose/versions.env \
+            -f compose/platform.yml \
+            up -d
+
+      - name: Wait for Platform
+        run: sleep 90
+
+      #######################################################
+      # Deploy Applications
+      #######################################################
+
+      - name: Deploy Applications
+        run: |
+          docker compose \
+            --env-file compose/.env \
+            --env-file compose/versions.env \
+            -f compose/application.yml \
+            up -d
+
+      - name: Wait for Applications
+        run: sleep 60
+
+      #######################################################
+      # Deploy Monitoring
+      #######################################################
+
+      - name: Deploy Monitoring
+        run: |
+          docker compose \
+            --env-file compose/.env \
+            --env-file compose/versions.env \
+            -f compose/monitoring.yml \
+            up -d
+
+      - name: Wait for Monitoring
+        run: sleep 60
+
+      #######################################################
+      # Health Checks
+      #######################################################
+
+      - name: Verify Running Containers
+        run: docker ps
+
+      #######################################################
+      # OWASP ZAP
+      #######################################################
+
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: http://localhost:8080
+
+      #######################################################
+      # Upload Reports
+      #######################################################
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-report
+          path: report_html.html
+
+      #######################################################
+      # Cleanup
+      #######################################################
+
+      - name: Stop Platform
+        if: always()
+        run: |
+          docker compose \
+            --env-file compose/.env \
+            --env-file compose/versions.env \
+            -f compose/infrastructure.yml \
+            -f compose/platform.yml \
+            -f compose/application.yml \
+            -f compose/monitoring.yml \
+            down -v

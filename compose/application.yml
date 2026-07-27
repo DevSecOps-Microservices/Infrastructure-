@@ -12,23 +12,14 @@ services:
   # ===========================================================
 
   service-incident:
-    image: ghcr.io/devsecops-microservices/service-incident:latest
+    image: ghcr.io/devsecops-microservices/service-incident:${INCIDENT_VERSION}
     container_name: service-incident
     restart: unless-stopped
     ports:
       - "8082:8082"
     environment:
       SPRING_APPLICATION_NAME: service-incident
-      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
-    depends_on:
-      config-server:
-        condition: service_healthy
-      postgres-incident:
-        condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
-      keycloak:
-        condition: service_healthy
+      SPRING_CONFIG_SERVER_URL: http://config-server:8888
     networks:
       - incidents-network
     healthcheck:
@@ -51,21 +42,14 @@ services:
   # ===========================================================
 
   service-user:
-    image: ghcr.io/devsecops-microservices/service-user:latest
+    image: ghcr.io/devsecops-microservices/service-user:${USER_VERSION}
     container_name: service-user
     restart: unless-stopped
     ports:
       - "8081:8081"
     environment:
       SPRING_APPLICATION_NAME: service-user
-      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
-    depends_on:
-      config-server:
-        condition: service_healthy
-      postgres-user:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
+      SPRING_CONFIG_SERVER_URL: http://config-server:8888
     networks:
       - incidents-network
     healthcheck:
@@ -88,23 +72,14 @@ services:
   # ===========================================================
 
   comment-service:
-    image: ghcr.io/devsecops-microservices/comment-service:latest
+    image: ghcr.io/devsecops-microservices/comment-service:${COMMENT_VERSION}
     container_name: comment-service
     restart: unless-stopped
     ports:
       - "8083:8083"
     environment:
       SPRING_APPLICATION_NAME: comment-service
-      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
-    depends_on:
-      config-server:
-        condition: service_healthy
-      postgres-comment:
-        condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
-      keycloak:
-        condition: service_healthy
+      SPRING_CONFIG_SERVER_URL: http://config-server:8888
     networks:
       - incidents-network
     healthcheck:
@@ -127,21 +102,14 @@ services:
   # ===========================================================
 
   chat-service:
-    image: ghcr.io/devsecops-microservices/chat-service:latest
+    image: ghcr.io/devsecops-microservices/chat-service:${CHAT_VERSION}
     container_name: chat-service
     restart: unless-stopped
     ports:
       - "8085:8085"
     environment:
       SPRING_APPLICATION_NAME: chat-service
-      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
-    depends_on:
-      config-server:
-        condition: service_healthy
-      postgres-chat:
-        condition: service_healthy
-      keycloak:
-        condition: service_healthy
+      SPRING_CONFIG_SERVER_URL: http://config-server:8888
     networks:
       - incidents-network
     healthcheck:
@@ -164,15 +132,13 @@ services:
   # ===========================================================
 
   client-app:
-    image: ghcr.io/devsecops-microservices/client-app:latest
+    image: ghcr.io/devsecops-microservices/client-app:${CLIENT_APP_VERSION}
     container_name: client-app
     restart: unless-stopped
     ports:
       - "3000:3000"
     depends_on:
       gateway-service:
-        condition: service_healthy
-      keycloak:
         condition: service_healthy
     networks:
       - incidents-network
@@ -188,15 +154,13 @@ services:
   # ===========================================================
 
   admin-dashboard:
-    image: ghcr.io/devsecops-microservices/admin-dashboard:latest
+    image: ghcr.io/devsecops-microservices/admin-dashboard:${ADMIN_DASHBOARD_VERSION}
     container_name: admin-dashboard
     restart: unless-stopped
     ports:
       - "4200:4200"
     depends_on:
       gateway-service:
-        condition: service_healthy
-      keycloak:
         condition: service_healthy
     networks:
       - incidents-network
@@ -212,28 +176,22 @@ services:
   # ===========================================================
 
   gateway-service:
-    image: ghcr.io/devsecops-microservices/gateway-service:latest
+    image: ghcr.io/devsecops-microservices/gateway-service:${GATEWAY_VERSION}
     container_name: gateway-service
     restart: unless-stopped
     ports:
       - "8880:8880"
     environment:
       SPRING_APPLICATION_NAME: gateway-service
-      SPRING_CONFIG_IMPORT: configserver:http://config-server:8888
+      SPRING_CONFIG_SERVER_URL: http://config-server:8888
     depends_on:
-      config-server:
-        condition: service_healthy
-      eureka-service:
+      service-user:
         condition: service_healthy
       service-incident:
-        condition: service_healthy
-      service-user:
         condition: service_healthy
       comment-service:
         condition: service_healthy
       chat-service:
-        condition: service_healthy
-      keycloak:
         condition: service_healthy
     networks:
       - incidents-network

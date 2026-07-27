@@ -215,22 +215,17 @@ services:
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
       KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HEALTH_ENABLED: "true"
     ports:
       - "8080:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
-      - ./keycloak/incidents-realm.json:/opt/keycloak/data/import/incidents-realm.json
+      - ../keycloak/incidents-realm.json:/opt/keycloak/data/import/incidents-realm.json
     depends_on:
       postgres-keycloak:
         condition: service_healthy
     networks:
       - incidents-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
     deploy:
       resources:
         limits:

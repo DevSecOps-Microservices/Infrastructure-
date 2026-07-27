@@ -10,7 +10,7 @@ services:
   # ===========================================================
 
   eureka-service:
-    image: ghcr.io/devsecops-microservices/eureka-service:latest
+    image: ghcr.io/devsecops-microservices/eureka-service:${EUREKA_VERSION}
     container_name: eureka-service
     restart: unless-stopped
     ports:
@@ -40,14 +40,13 @@ services:
   # ===========================================================
 
   config-server:
-    image: ghcr.io/devsecops-microservices/config-server:latest
+    image: ghcr.io/devsecops-microservices/config-server:${CONFIG_VERSION}
     container_name: config-server
     restart: unless-stopped
     ports:
       - "8888:8888"
     environment:
       SPRING_APPLICATION_NAME: config-server
-      SERVER_PORT: 8888
       SPRING_PROFILES_ACTIVE: git,vault
       GIT_TOKEN: ${GIT_TOKEN}
       VAULT_ADDR: ${VAULT_ADDR}

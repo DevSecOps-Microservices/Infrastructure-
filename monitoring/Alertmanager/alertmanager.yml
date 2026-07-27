@@ -8,9 +8,9 @@ global:
   resolve_timeout: 5m
 
   smtp_smarthost: smtp.gmail.com:587
-  smtp_from: devsecops.incidents@gmail.com
-  smtp_auth_username: devsecops.incidents@gmail.com
-  smtp_auth_password: ${SMTP_PASSWORD}
+  smtp_from: CHANGE_ME@gmail.com
+  smtp_auth_username: CHANGE_ME@gmail.com
+  smtp_auth_password: CHANGE_ME 
   smtp_require_tls: true
 
 # =============================================================
@@ -70,20 +70,20 @@ receivers:
 
   - name: default-receiver
     email_configs:
-      - to: "devsecops.team@gmail.com"
+      - to: "CHANGE_ME@gmail.com"
         send_resolved: true
 
   - name: critical-receiver
     email_configs:
-      - to: "devsecops.team@gmail.com"
+      - to: "CHANGE_ME@gmail.com"
         send_resolved: true
 
   - name: security-receiver
     email_configs:
-      - to: "devsecops.team@gmail.com"
+      - to: "CHANGE_ME@gmail.com"
         send_resolved: true
 
   - name: infrastructure-receiver
     email_configs:
-      - to: "devsecops.team@gmail.com"
+      - to: "CHANGE_ME@gmail.com"
         send_resolved: true

@@ -21,7 +21,7 @@ groups:
   rules:
 
   - alert: ServiceDown
-    expr: up{job!="prometheus"} == 0
+    expr: up{job!="prometheus",job!="gateway-service"} == 0
     for: 1m
 
     labels:
@@ -56,36 +56,47 @@ groups:
 
   rules:
 
-  - alert: HighCPUUsage
-    expr: process_cpu_usage > 0.80
-    for: 5m
-
-    labels:
-      severity: warning
-
-    annotations:
-      summary: High CPU usage
-      description: >
-        CPU usage is above 80%
-        on {{ $labels.job }}.
-
-
-  - alert: HighMemoryUsage
+  - alert: HighContainerCPUUsage
     expr: |
-      jvm_memory_used_bytes{area="heap"}
-      /
-      jvm_memory_max_bytes{area="heap"}
-      > 0.85
+      rate(
+        container_cpu_usage_seconds_total{
+        name=~"gateway-service|service-user|service-incident|comment-service|chat-service|config-server|eureka-service"
+        }[2m]
+      ) > 0.8
     for: 5m
 
     labels:
       severity: warning
+      category: infrastructure
 
     annotations:
-      summary: High JVM Heap Usage
+      summary: High container CPU usage
       description: >
-        Heap usage exceeded 85%
-        on {{ $labels.job }}.
+        Container {{ $labels.name }}
+        is consuming more than 80% of one CPU core.
+
+  - alert: HighContainerMemoryUsage
+    expr: |
+      (
+        container_memory_usage_bytes{
+          name=~"gateway-service|service-user|service-incident|comment-service|chat-service|config-server|eureka-service"
+        }
+        /
+        container_spec_memory_limit_bytes{
+          name=~"gateway-service|service-user|service-incident|comment-service|chat-service|config-server|eureka-service"
+        }
+      ) > 0.85
+    for: 5m
+
+    labels:
+      severity: warning
+      category: infrastructure
+
+    annotations:
+      summary: High container memory usage
+      description: >
+        Container {{ $labels.name }}
+        is using more than 85% of its allocated memory.
 
 
   - alert: HighErrorRate
@@ -105,6 +116,25 @@ groups:
       description: >
         More than 5% of HTTP requests
         are returning server errors.
+
+  - alert: ContainerRestarted
+    expr: 
+      changes(
+        container_start_time_seconds{
+          name=~"gateway-service|service-user|service-incident|comment-service|chat-service|config-server|eureka-service"
+        }[10m]
+      ) > 0
+    for: 0m
+
+    labels:
+      severity: critical
+      category: infrastructure
+
+    annotations:
+      summary: Container restarted
+      description: >
+        Container {{ $labels.name }}
+        restarted unexpectedly.
 
 
 # =============================================================
