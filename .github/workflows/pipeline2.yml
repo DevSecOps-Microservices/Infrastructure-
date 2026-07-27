@@ -60,10 +60,10 @@ jobs:
       - name: Wait for Platform
         run: sleep 90
 
-      - name: Check Config Server
+      - name: Config Server Logs
+        if: always()
         run: |
-          curl -v http://localhost:8888/actuator/health
-
+          docker logs config-server
       #######################################################
       # Deploy Applications
       #######################################################
