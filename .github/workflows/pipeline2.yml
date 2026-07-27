@@ -60,6 +60,10 @@ jobs:
       - name: Wait for Platform
         run: sleep 90
 
+      - name: Check Config Server
+        run: |
+          curl -v http://localhost:8888/actuator/health
+
       #######################################################
       # Deploy Applications
       #######################################################
