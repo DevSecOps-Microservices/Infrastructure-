@@ -73,9 +73,8 @@ jobs:
         run: |
           docker logs config-server
 
-      - name: Check Vault URI inside config-server
-        run: |
-          docker exec config-server printenv | grep SPRING_CLOUD_CONFIG_SERVER_VAULT_URI
+      - name: Print env
+        run: docker exec config-server env | grep VAULT
       #######################################################
       # Deploy Applications
       #######################################################
