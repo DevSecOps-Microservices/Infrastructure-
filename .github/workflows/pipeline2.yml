@@ -51,11 +51,14 @@ jobs:
             up -d
 
       - name: Wait for Infrastructure
-        run: sleep 90
+        run: sleep 60
 
       #######################################################
       # Deploy Platform
       #######################################################
+      - name: Test Vault
+        run: |
+          curl -v https://${{ secrets.VAULT_ADDR }}:8200/v1/sys/health
 
       - name: Deploy Platform
         run: |
@@ -66,7 +69,7 @@ jobs:
             up -d
 
       - name: Wait for Platform
-        run: sleep 90
+        run: sleep 60
 
       - name: Config Server Logs
         if: always()
