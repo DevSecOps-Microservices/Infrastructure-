@@ -17,6 +17,14 @@ jobs:
   deploy-platform:
 
     runs-on: ubuntu-latest
+    env:
+      # Config Server credentials
+      GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+      GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+      
+      # Vault
+      VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
     steps:
 

@@ -51,7 +51,6 @@ services:
       GIT_USERNAME: ${GIT_USERNAME}
       GIT_TOKEN: ${GIT_TOKEN}
       VAULT_ADDR: ${VAULT_ADDR}
-      VAULT_PORT: ${VAULT_PORT}
       VAULT_TOKEN: ${VAULT_TOKEN}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
     depends_on:
