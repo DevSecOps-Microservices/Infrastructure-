@@ -56,9 +56,6 @@ jobs:
       #######################################################
       # Deploy Platform
       #######################################################
-      - name: Test Vault
-        run: |
-          curl -v https://${{ secrets.VAULT_ADDR }}/v1/sys/health
 
       - name: Deploy Platform
         run: |
