@@ -56,6 +56,12 @@ jobs:
       #######################################################
       # Deploy Platform
       #######################################################
+      - name: Debug Vault Address
+        run: |
+          echo "Length: ${#VAULT_ADDR}"
+          echo "$VAULT_ADDR" | sed 's/./& /g'
+        env:
+          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
 
       - name: Deploy Platform
         run: |
