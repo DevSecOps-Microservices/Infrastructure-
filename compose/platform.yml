@@ -20,6 +20,12 @@ services:
       SERVER_PORT: 8761
     networks:
       - incidents-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8761/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
     deploy:
       resources:
         limits:
@@ -46,6 +52,7 @@ services:
       GIT_TOKEN: ${GIT_TOKEN}
       VAULT_ADDR: ${VAULT_ADDR}
       VAULT_TOKEN: ${VAULT_TOKEN}
+      VAULT_PORT: ${VAULT_PORT}
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-service:8761/eureka
     depends_on:
       eureka-service:
