@@ -27,6 +27,16 @@ jobs:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
     steps:
+      - name: Clean Previous Compose State
+        run: |
+          docker compose \
+            --env-file compose/.env \
+            --env-file compose/versions.env \
+            -f compose/infrastructure.yml \
+            -f compose/platform.yml \
+            -f compose/application.yml \
+            -f compose/monitoring.yml \
+            down -v --remove-orphans
 
       - name: Checkout Infrastructure Repository
         uses: actions/checkout@v4
@@ -73,14 +83,16 @@ jobs:
 
       - name: Wait for Platform
         run: sleep 60
-
-      - name: Config Server Logs
-        if: always()
+      
+      - name: Test Config Server Before Apps
         run: |
-          docker logs config-server
+          curl -v http://localhost:8888/service-user/default || true
+          docker logs config-server --tail=300
+          curl -f http://localhost:8888/actuator/health
 
-      - name: Print env
-        run: docker exec config-server env | grep VAULT
+      - name: Verify Config Server Can Serve App Config
+        run: |
+          curl -f http://localhost:8888/service-user/default
       #######################################################
       # Deploy Applications
       #######################################################
