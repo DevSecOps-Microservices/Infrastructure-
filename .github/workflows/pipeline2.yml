@@ -93,33 +93,10 @@ jobs:
             -f compose/application.yml \
             up -d
 
-      - name: Application Logs
-        if: always()
+      - name: Test config-server endpoint
         run: |
-          echo "=============================="
-          echo "USER SERVICE"
-          echo "=============================="
-          docker logs service-user || true
-
-          echo "=============================="
-          echo "INCIDENT SERVICE"
-          echo "=============================="
-          docker logs service-incident || true
-
-          echo "=============================="
-          echo "COMMENT SERVICE"
-          echo "=============================="
-          docker logs comment-service || true
-
-          echo "=============================="
-          echo "CHAT SERVICE"
-          echo "=============================="
-          docker logs chat-service || true
-
-          echo "=============================="
-          echo "GATEWAY"
-          echo "=============================="
-          docker logs gateway-service || true
+          curl -v http://localhost:8888/service-user/default || true
+          docker logs config-server --tail=300
           
 
       - name: Wait for Applications
