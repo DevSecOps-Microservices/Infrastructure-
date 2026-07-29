@@ -93,6 +93,35 @@ jobs:
             -f compose/application.yml \
             up -d
 
+      - name: Application Logs
+        if: always()
+        run: |
+          echo "=============================="
+          echo "USER SERVICE"
+          echo "=============================="
+          docker logs service-user || true
+
+          echo "=============================="
+          echo "INCIDENT SERVICE"
+          echo "=============================="
+          docker logs service-incident || true
+
+          echo "=============================="
+          echo "COMMENT SERVICE"
+          echo "=============================="
+          docker logs comment-service || true
+
+          echo "=============================="
+          echo "CHAT SERVICE"
+          echo "=============================="
+          docker logs chat-service || true
+
+          echo "=============================="
+          echo "GATEWAY"
+          echo "=============================="
+          docker logs gateway-service || true
+          
+
       - name: Wait for Applications
         run: sleep 60
 
