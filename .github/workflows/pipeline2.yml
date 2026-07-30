@@ -50,7 +50,7 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/infrastructure.yml \
-            up -d
+            pull
 
       - name: Wait for Infrastructure
         run: sleep 60
