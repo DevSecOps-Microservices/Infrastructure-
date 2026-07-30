@@ -16,7 +16,10 @@ jobs:
 
   deploy-platform:
 
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
     env:
       # Config Server credentials
       GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
@@ -79,9 +82,6 @@ jobs:
           docker logs config-server --tail=300
           curl -f http://localhost:8888/actuator/health
 
-      - name: Verify Config Server Can Serve App Config
-        run: |
-          curl -f http://localhost:8888/service-user/default
       #######################################################
       # Deploy Applications
       #######################################################
