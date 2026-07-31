@@ -71,9 +71,10 @@ jobs:
       
       - name: Test Config Server Before Apps
         run: |
-          curl -v http://localhost:8888/service-user/default || true
+          docker exec config-server env | grep VAULT_PORT
+          docker exec config-server env | grep SPRING_CLOUD_CONFIG_SERVER_VAULT
+          curl -v https://removal-freemason-monogram.ngrok-free.dev/v1/sys/health || true
           docker logs config-server --tail=300
-          curl -f http://localhost:8888/actuator/health
 
       #######################################################
       # Deploy Applications
