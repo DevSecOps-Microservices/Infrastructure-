@@ -72,7 +72,8 @@ jobs:
       
       - name: Test Config Server Before Apps
         run: |
-          docker exec config-server ping -c 3 removal-freemason-monogram.ngrok-free.dev
+          curl http://localhost:8888/service-user/default
+          curl http://localhost:8888/actuator/health          
           curl -v https://removal-freemason-monogram.ngrok-free.dev/v1/sys/health
 
       #######################################################
