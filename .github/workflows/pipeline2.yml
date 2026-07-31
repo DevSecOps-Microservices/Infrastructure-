@@ -58,13 +58,6 @@ jobs:
       #######################################################
       # Deploy Platform
       #######################################################
-      - name: Debug Vault Address
-        run: |
-          echo "Length: ${#VAULT_ADDR}"
-          echo "$VAULT_ADDR" | sed 's/./& /g'
-        env:
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-
       - name: Deploy Platform
         run: |
           docker compose \
@@ -74,7 +67,7 @@ jobs:
             up -d
 
       - name: Wait for Platform
-        run: sleep 60
+        run: sleep 120
       
       - name: Test Config Server Before Apps
         run: |
@@ -143,19 +136,3 @@ jobs:
         with:
           name: zap-report
           path: report_html.html
-
-      #######################################################
-      # Cleanup
-      #######################################################
-
-      - name: Stop Platform
-        if: always()
-        run: |
-          docker compose \
-            --env-file compose/.env \
-            --env-file compose/versions.env \
-            -f compose/infrastructure.yml \
-            -f compose/platform.yml \
-            -f compose/application.yml \
-            -f compose/monitoring.yml \
-            down -v
