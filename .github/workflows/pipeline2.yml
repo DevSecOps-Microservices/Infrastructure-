@@ -65,7 +65,7 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/platform.yml \
-            up -d
+            up -d --force-recreate
 
       - name: Wait for Platform
         run: sleep 120
@@ -74,7 +74,6 @@ jobs:
         run: |
           curl http://localhost:8888/service-user/default
           curl http://localhost:8888/actuator/health          
-          curl -v https://removal-freemason-monogram.ngrok-free.dev/v1/sys/health
 
       #######################################################
       # Deploy Applications
