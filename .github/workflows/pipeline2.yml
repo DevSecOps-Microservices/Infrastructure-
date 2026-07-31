@@ -27,6 +27,7 @@ jobs:
       
       # Vault
       VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+      VAULT_PORT: ${{ secrests.VAULT_PORT }}
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
     steps:
