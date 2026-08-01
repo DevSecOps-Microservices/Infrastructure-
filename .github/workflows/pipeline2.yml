@@ -68,16 +68,17 @@ jobs:
             up -d --force-recreate
 
       - name: Wait for Platform
-        run: sleep 120
+        run: sleep 150
       
       - name: Test Config Server Before Apps
         run: |
           curl http://localhost:8888/service-user/default
-          curl http://localhost:8888/actuator/health          
+          curl http://localhost:8888/actuator/health
 
       #######################################################
       # Deploy Applications
       #######################################################
+      
 
       - name: Deploy Applications
         run: |
