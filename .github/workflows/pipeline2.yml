@@ -121,7 +121,6 @@ jobs:
           curl -v http://localhost:8880/actuator/health
 
       - name: Run ZAP
-        continue-on-error: true
         run: |
           docker run --rm \
             --network=host \
