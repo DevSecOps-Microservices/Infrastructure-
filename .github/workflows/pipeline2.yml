@@ -87,12 +87,6 @@ jobs:
             -f compose/application.yml \
             up -d
 
-      - name: Test config-server endpoint
-        run: |
-          curl -v http://localhost:8888/service-user/default || true
-          docker logs config-server --tail=300
-          
-
       - name: Wait for Applications
         run: sleep 60
 
