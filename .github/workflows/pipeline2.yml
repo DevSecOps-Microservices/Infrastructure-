@@ -133,9 +133,6 @@ jobs:
             -w report.md \
             -x report.xml
 
-      - name: Verify reports
-         run: ls -lah report*
-
       #######################################################
       # Upload Reports
       #######################################################
