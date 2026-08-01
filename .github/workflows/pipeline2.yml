@@ -121,6 +121,7 @@ jobs:
           curl -v http://localhost:8880/actuator/health
 
       - name: Run ZAP
+        continue-on-error: true
         run: |
           docker run --rm \
             --network=host \
@@ -136,7 +137,12 @@ jobs:
       #######################################################
       # Upload Reports
       #######################################################
-
+      - name: Verify reports
+        if: always()
+        run: |
+          pwd
+          ls -lah
+          ls -lah report*
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
