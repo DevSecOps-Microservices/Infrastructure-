@@ -132,14 +132,13 @@ jobs:
             -J report.json \
             -w report.md \
             -x report.xml
-       - name: Verify reports
+
+      - name: Verify reports
          run: ls -lah report*
 
       #######################################################
       # Upload Reports
       #######################################################
-
-      
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
