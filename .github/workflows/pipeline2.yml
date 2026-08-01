@@ -117,15 +117,21 @@ jobs:
 
       - name: Verify Running Containers
         run: docker ps
-
+      
       #######################################################
       # OWASP ZAP
-      #######################################################
+      ####################################################### 
+      - name: Pull ZAP Image
+        run: docker pull ghcr.io/zaproxy/zaproxy:stable
+      
+      - name: Test Gateway
+        run: |
+          curl -v http://localhost:8880/actuator/health
 
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          target: http://localhost:8080
+          target: http://localhost:8880
 
       #######################################################
       # Upload Reports
