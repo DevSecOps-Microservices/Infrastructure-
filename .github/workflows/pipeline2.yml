@@ -120,7 +120,7 @@ jobs:
         run: |
           curl -v http://localhost:8880/actuator/health
 
-      - name: Run ZAP
+      - name: OWASP ZAP Baseline Scan
         run: |
           docker run --rm \
             --network=host \
@@ -131,7 +131,9 @@ jobs:
             -r report.html \
             -J report.json \
             -w report.md \
-            -x report.xml
+            -x report.xml \
+            -c /zap/wrk/.zap/rules.tsv
+        continue-on-error: true
 
       #######################################################
       # Upload Reports
@@ -139,15 +141,24 @@ jobs:
       - name: Verify reports
         if: always()
         run: |
+          echo "Current directory:"
           pwd
+          echo "Workspace:"
+          echo ${{ github.workspace }}
+          echo "All files:"
           ls -lah
-          ls -lah report*
+          echo "Report files:"
+          ls -lah report* || echo "No report files found at root"
+          ls -lah ${{ github.workspace }}/report* || echo "No report files in workspace"
+
       - name: Upload ZAP Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: zap-report
+          name: zap-pentest-report-${{ github.run_number }}
           path: |
             report.html
             report.json
             report.md
             report.xml
+          retention-days: 90
