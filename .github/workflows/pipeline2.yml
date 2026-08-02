@@ -54,7 +54,7 @@ jobs:
             up -d
 
       - name: Wait for Infrastructure
-        run: sleep 60
+        run: sleep 20
 
       #######################################################
       # Deploy Platform
@@ -68,7 +68,7 @@ jobs:
             up -d
 
       - name: Wait for Platform
-        run: sleep 150
+        run: sleep 20
       
       - name: Test Config Server Before Apps
         run: |
@@ -89,7 +89,7 @@ jobs:
             up -d
 
       - name: Wait for Applications
-        run: sleep 60
+        run: sleep 20
 
       #######################################################
       # Deploy Monitoring
@@ -104,7 +104,7 @@ jobs:
             up -d
 
       - name: Wait for Monitoring
-        run: sleep 60
+        run: sleep 20
 
       #######################################################
       # Health Checks
