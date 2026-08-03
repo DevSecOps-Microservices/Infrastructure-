@@ -124,7 +124,7 @@ jobs:
         run: |
           docker run --rm \
             --network=host \
-            -v /opt/actions-runner/_work/Infrastructure-/Infrastructure-:/zap/wrk \
+            -v /opt/actions-runner/_work/Infrastructure-:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py \
             -t http://localhost:8880 \
