@@ -37,12 +37,20 @@
       "redirectUris": [
         "http://localhost:8880/*",
         "http://localhost:3000/*",
-        "http://localhost:4200/*"
+        "http://localhost:4200/*",
+
+        "http://192.168.11.121:8880/*",
+        "http://192.168.11.121:3000/*",
+        "http://192.168.11.121:4200/*"
       ],
       "webOrigins": [
         "http://localhost:3000",
         "http://localhost:4200",
-        "http://localhost:8880"
+        "http://localhost:8880",
+
+        "http://192.168.11.121:3000",
+        "http://192.168.11.121:4200",
+        "http://192.168.11.121:8880"
       ],
       "protocol": "openid-connect",
       "attributes": {
