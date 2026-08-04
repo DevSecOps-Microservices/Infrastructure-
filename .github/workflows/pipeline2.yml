@@ -137,12 +137,6 @@ jobs:
       #######################################################
       # Upload Reports
       #######################################################
-      - name: Verify reports
-        if: always()
-        run: |
-          pwd
-          ls -lah
-          ls -lah report*
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
