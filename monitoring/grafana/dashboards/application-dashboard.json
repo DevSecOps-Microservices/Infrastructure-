@@ -246,9 +246,10 @@
       "datasource": "Prometheus",
 
       "targets": [
-        {
-          "expr": "topk(10, histogram_quantile(0.95, sum by(uri,le)(rate(http_server_requests_seconds_bucket{layer=\"application\"}[5m]))))"
-        }
+       {
+         "expr": "topk(10, histogram_quantile(0.95, sum by (application, uri, le) (rate(http_server_requests_seconds_bucket{layer=\"application\"}[5m]))))",
+         "legendFormat": "{{application}} - {{uri}}"
+       }
       ]
     },
 

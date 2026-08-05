@@ -259,7 +259,7 @@
       "datasource": "Loki",
       "targets": [
         {
-          "expr": "{name=~\"prometheus|grafana|alertmanager|loki|promtail|cadvisor\"} |= \"error\""
+          "expr": "{name=~"prometheus|grafana|alertmanager|loki|promtail|cadvisor|minio|postgres-.*"} |~ "(?i)(error|warn|fatal)""
         }
       ],
       "options": {

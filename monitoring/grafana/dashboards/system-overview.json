@@ -83,7 +83,7 @@
       "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
       "targets": [
         {
-          "expr": "jvm_memory_used_bytes{area=\"heap\"} / jvm_memory_max_bytes{area=\"heap\"} * 100",
+          "expr": "100 * sum by (application) (jvm_memory_used_bytes{area="heap"})/sum by (application) (jvm_memory_max_bytes{area="heap"})",
           "legendFormat": "{{ application }}"
         }
       ],
