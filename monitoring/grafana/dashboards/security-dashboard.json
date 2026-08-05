@@ -159,8 +159,8 @@
       "gridPos": { "x": 0, "y": 12, "w": 24, "h": 8 },
       "targets": [
         {
-          "expr": "sum by(application) (rate(http_server_requests_seconds_count{uri!~\"/actuator.*\"}[1m]))",
-          "legendFormat": "{{application}}"
+          "expr": "sum by(application) (rate(http_server_requests_seconds_count{uri=~\"/api/.*\"}[1m]))",
+          "legendFormat": "{{ application }}"
         }
       ],
       "fieldConfig": {
