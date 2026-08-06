@@ -86,7 +86,7 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/application.yml \
-            up -d
+            up -d --remove-orphans
 
       - name: Wait for Applications
         run: sleep 20
