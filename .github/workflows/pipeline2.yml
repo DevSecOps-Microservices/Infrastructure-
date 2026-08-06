@@ -101,7 +101,7 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/monitoring.yml \
-            up -d --remove-orphans
+            up -d
 
       - name: Wait for Monitoring
         run: sleep 20
