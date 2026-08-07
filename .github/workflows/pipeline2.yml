@@ -68,7 +68,7 @@ jobs:
             up -d
 
       - name: Wait for Platform
-        run: sleep 20
+        run: sleep 180
       
       - name: Test Config Server Before Apps
         run: |
@@ -86,10 +86,10 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/application.yml \
-            up -d --remove-orphans
+            up -d
 
       - name: Wait for Applications
-        run: sleep 20
+        run: sleep 180
 
       #######################################################
       # Deploy Monitoring
@@ -101,7 +101,7 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/monitoring.yml \
-            up -d --remove-orphans
+            up -d
 
       - name: Wait for Monitoring
         run: sleep 20
