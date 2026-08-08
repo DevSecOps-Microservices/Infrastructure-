@@ -1,0 +1,20 @@
+env:
+  contexts:
+    - name: incidents-api
+      urls:
+        - ${ZAP_TARGET_URL}
+
+      authentication:
+        method: "json"
+        parameters:
+          loginPageUrl: "${KEYCLOAK_TOKEN_URL}"
+          loginRequestData: "client_id=${ZAP_CLIENT_ID}&client_secret=${ZAP_CLIENT_SECRET}&grant_type=password&username=${ZAP_USERNAME}&password=${ZAP_PASSWORD}"
+
+      users:
+        - name: zap-user
+          credentials:
+            username: "${ZAP_USERNAME}"
+            password: "${ZAP_PASSWORD}"
+
+      includePaths:
+        - "${ZAP_TARGET_URL}/.*"
