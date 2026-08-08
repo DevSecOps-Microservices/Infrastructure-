@@ -30,6 +30,7 @@ jobs:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
     steps:
+
       - name: Checkout Infrastructure Repository
         uses: actions/checkout@v4
 
@@ -120,17 +121,26 @@ jobs:
         run: |
           curl -v "${{ vars.ZAP_TARGET_URL }}/actuator/health"
 
+      - name: Get Keycloak Token
+        run: |
+          ZAP_ACCESS_TOKEN=$(curl -s -X POST "${{ vars.KEYCLOAK_TOKEN_URL }}" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "grant_type=password" \
+            -d "client_id=${{ secrets.ZAP_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.ZAP_CLIENT_SECRET }}" \
+            -d "username=${{ secrets.ZAP_USERNAME }}" \
+            -d "password=${{ secrets.ZAP_PASSWORD }}" \
+            | jq -r '.access_token')
+
+          echo "ZAP_ACCESS_TOKEN=$ZAP_ACCESS_TOKEN" >> $GITHUB_ENV
+          echo "Token fetched successfully"
+
       - name: Run Authenticated ZAP Scan
         run: |
           docker run --rm \
             --network=host \
-            -v /opt/actions-runner/_work/Infrastructure-:/zap/wrk \
-            -e ZAP_CLIENT_ID="${{ secrets.ZAP_CLIENT_ID }}" \
-            -e ZAP_CLIENT_SECRET="${{ secrets.ZAP_CLIENT_SECRET }}" \
-            -e ZAP_USERNAME="${{ secrets.ZAP_USERNAME }}" \
-            -e ZAP_PASSWORD="${{ secrets.ZAP_PASSWORD }}" \
-            -e ZAP_TARGET_URL="${{ vars.ZAP_TARGET_URL }}" \
-            -e KEYCLOAK_TOKEN_URL="${{ vars.KEYCLOAK_TOKEN_URL }}" \
+            -v ${{ github.workspace }}:/zap/wrk \
+            -e ZAP_ACCESS_TOKEN="${{ env.ZAP_ACCESS_TOKEN }}" \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-full-scan.py \
             -t "${{ vars.ZAP_TARGET_URL }}" \
@@ -138,13 +148,16 @@ jobs:
             -J report.json \
             -w report.md \
             -x report.xml \
-            -n /zap/wrk/zap/authenticated-scan.yaml \
-            -U zap-user \
+            -config api.disablekey=true \
+            -config api.addrs.addr.name=.* \
+            -config api.addrs.addr.regex=true \
+            -config proxy.port=8092 \
             -z "-config replacer.full_list(0).description=Authorization \
-                -config replacer.full_list(0).enabled=true \
-                -config replacer.full_list(0).matchtype=REQ_HEADER \
-                -config replacer.full_list(0).matchstr=Authorization \
-                -config replacer.full_list(0).replacement=Bearer\ ${ZAP_ACCESS_TOKEN}"
+            -config replacer.full_list(0).enabled=true \
+            -config replacer.full_list(0).matchtype=REQ_HEADER \
+            -config replacer.full_list(0).matchstr=Authorization \
+            -config replacer.full_list(0).replacement=Bearer\ ${ZAP_ACCESS_TOKEN}"
+
         continue-on-error: true
 
       #######################################################
