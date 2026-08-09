@@ -149,6 +149,7 @@ jobs:
             -w report.md \
             -x report.xml
             -z "-config replacer.full_list(0).description=Authorization \
+            -config proxy.port=8092 \
             -config replacer.full_list(0).enabled=true \
             -config replacer.full_list(0).matchtype=REQ_HEADER \
             -config replacer.full_list(0).matchstr=Authorization \
