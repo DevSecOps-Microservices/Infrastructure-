@@ -141,6 +141,7 @@ jobs:
             --network=host \
             -v ${{ github.workspace }}:/zap/wrk \
             -e ZAP_ACCESS_TOKEN="${{ env.ZAP_ACCESS_TOKEN }}" \
+            -e ZAP_PORT=8092 \
             ghcr.io/zaproxy/zaproxy:stable \
             zap-full-scan.py \
             -t "${{ vars.ZAP_TARGET_URL }}" \
