@@ -181,9 +181,6 @@ jobs:
         env:
           ZAP_ACCESS_TOKEN: ${{ secrets.ZAP_ACCESS_TOKEN }}
 
-        always:
-          docker rm -f zap 2>/dev/null || true
-
       #######################################################
       # Upload Reports
       #######################################################
