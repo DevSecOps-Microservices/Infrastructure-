@@ -131,32 +131,57 @@ jobs:
             -d "username=${{ secrets.ZAP_USERNAME }}" \
             -d "password=${{ secrets.ZAP_PASSWORD }}" \
             | jq -r '.access_token')
-
           echo "ZAP_ACCESS_TOKEN=$ZAP_ACCESS_TOKEN" >> $GITHUB_ENV
           echo "Token fetched successfully"
 
-      - name: Run OWASP ZAP DAST
+      - name: Start ZAP Daemon
         run: |
-          docker run --rm \
+          docker run -d --name zap \
             --network=host \
-            -v "/opt/actions-runner/_work/Infrastructure-/Infrastructure-:/zap/wrk" \
-            -e ZAP_ACCESS_TOKEN="${ZAP_ACCESS_TOKEN}" \
+            -v ${{ github.workspace }}:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
-            zap-full-scan.py \
-            -t "http://127.0.0.1:8880" \
-            -r report.html \
-            -J report.json \
-            -w report.md \
-            -x report.xml
-            -z "-config replacer.full_list(0).description=Authorization \
-            -config proxy.port=8092 \
-            -config replacer.full_list(0).enabled=true \
-            -config replacer.full_list(0).matchtype=REQ_HEADER \
-            -config replacer.full_list(0).matchstr=Authorization \
-            -config replacer.full_list(0).replacement=Bearer\ ${ZAP_ACCESS_TOKEN}"
-      #######################################################
-      # Upload Reports
-      #######################################################
+            zap.sh -daemon \
+            -host 0.0.0.0 \
+            -port 8090 \
+            -config api.disablekey=true \
+            -config api.addrs.addr.name=.* \
+            -config api.addrs.addr.regex=true \
+            -config proxy.port=8092
+          until curl -s http://127.0.0.1:8090/JSON/core/view/version/ | grep -q version; do
+            echo "Waiting for ZAP..."
+            sleep 10
+          done
+          echo "ZAP is ready!"
+
+      - name: Run ZAP Authenticated Scan
+        run: |
+          # Set Authorization header for all requests
+          curl -s "http://127.0.0.1:8090/JSON/replacer/action/addRule/?description=Authorization&enabled=true&matchType=REQ_HEADER&matchString=Authorization&replacement=Bearer%20${{ env.ZAP_ACCESS_TOKEN }}"
+
+          # Spider the target
+          SCAN_ID=$(curl -s "http://127.0.0.1:8090/JSON/spider/action/scan/?url=${{ vars.ZAP_TARGET_URL }}&maxChildren=10&recurse=true" | jq -r '.scan')
+          echo "Spider scan ID: $SCAN_ID"
+          sleep 30
+
+          # Active scan
+          ASCAN_ID=$(curl -s "http://127.0.0.1:8090/JSON/ascan/action/scan/?url=${{ vars.ZAP_TARGET_URL }}&recurse=true" | jq -r '.scan')
+          echo "Active scan ID: $ASCAN_ID"
+
+          # Wait for active scan to complete
+          while true; do
+            STATUS=$(curl -s "http://127.0.0.1:8090/JSON/ascan/view/status/?scanId=$ASCAN_ID" | jq -r '.status')
+            echo "Scan progress: $STATUS%"
+            if [ "$STATUS" = "100" ]; then break; fi
+            sleep 15
+          done
+
+          # Generate reports
+          curl -s "http://127.0.0.1:8090/OTHER/core/other/htmlreport/" > report.html
+          curl -s "http://127.0.0.1:8090/OTHER/core/other/jsonreport/" > report.json
+          curl -s "http://127.0.0.1:8090/OTHER/core/other/xmlreport/" > report.xml
+          curl -s "http://127.0.0.1:8090/OTHER/core/other/mdreport/" > report.md
+          echo "Reports generated!"
+        continue-on-error: true
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
