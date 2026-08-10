@@ -160,7 +160,7 @@ jobs:
         run: |
           # Set Authorization header - encode the token properly
           TOKEN="${{ env.ZAP_ACCESS_TOKEN }}"
-          curl -s "http://127.0.0.1:8090/JSON/replacer/action/addRule/" \
+          curl -v -G "http://127.0.0.1:8090/JSON/replacer/action/addRule/" \
             --data-urlencode "description=Authorization" \
             --data-urlencode "enabled=true" \
             --data-urlencode "matchType=REQ_HEADER" \
