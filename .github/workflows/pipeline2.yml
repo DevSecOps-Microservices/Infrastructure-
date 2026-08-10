@@ -136,7 +136,10 @@ jobs:
 
       - name: Start ZAP Daemon
         run: |
-          docker run -d --name zap-1 \
+          # Remove existing ZAP container if it exists
+          docker rm -f zap || true
+
+          docker run -d --name zap \
             --network=host \
             -v ${{ github.workspace }}:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
