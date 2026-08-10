@@ -136,7 +136,7 @@ jobs:
 
       - name: Start ZAP Daemon
         run: |
-          docker run -d --name zap \
+          docker run -d --name \
             --network=host \
             -v ${{ github.workspace }}:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
