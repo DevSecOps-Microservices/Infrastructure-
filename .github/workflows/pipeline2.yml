@@ -158,8 +158,17 @@ jobs:
 
       - name: Run ZAP Authenticated Scan
         run: |
-          # Set Authorization header for all requests
-          curl -s "http://127.0.0.1:8090/JSON/replacer/action/addRule/?description=Authorization&enabled=true&matchType=REQ_HEADER&matchString=Authorization&replacement=Bearer%20${{ env.ZAP_ACCESS_TOKEN }}"
+          # Set Authorization header - encode the token properly
+          TOKEN="${{ env.ZAP_ACCESS_TOKEN }}"
+          curl -s "http://127.0.0.1:8090/JSON/replacer/action/addRule/" \
+            --data-urlencode "description=Authorization" \
+            --data-urlencode "enabled=true" \
+            --data-urlencode "matchType=REQ_HEADER" \
+            --data-urlencode "matchString=Authorization" \
+            --data-urlencode "replacement=Bearer $TOKEN"
+
+          # Verify the rule was added
+          curl -s "http://127.0.0.1:8090/JSON/replacer/view/rules/" | jq '.'
 
           # Create a context
           CONTEXT_ID=$(curl -s "http://127.0.0.1:8090/JSON/context/action/newContext/?contextName=IncidentHub" | jq -r '.contextId')
@@ -169,7 +178,7 @@ jobs:
           curl -s "http://127.0.0.1:8090/JSON/context/action/includeInContext/?contextName=IncidentHub&regex=http://localhost:8880/api/.*"
           curl -s "http://127.0.0.1:8090/JSON/context/action/includeInContext/?contextName=IncidentHub&regex=http://localhost:8880/actuator/.*"
 
-          # Manually add all known API endpoints to ZAP
+          # Manually add known API endpoints
           curl -s "http://127.0.0.1:8090/JSON/core/action/accessUrl/?url=http://localhost:8880/api/incidents&followRedirects=true"
           curl -s "http://127.0.0.1:8090/JSON/core/action/accessUrl/?url=http://localhost:8880/api/users&followRedirects=true"
           curl -s "http://127.0.0.1:8090/JSON/core/action/accessUrl/?url=http://localhost:8880/api/commentaires&followRedirects=true"
@@ -199,7 +208,6 @@ jobs:
           curl -s "http://127.0.0.1:8090/OTHER/core/other/mdreport/" > report.md
           echo "Reports generated!"
 
-          # Clean up ZAP container
         continue-on-error: true
 
       - name: Upload ZAP Report
