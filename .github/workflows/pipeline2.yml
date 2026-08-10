@@ -161,13 +161,27 @@ jobs:
           # Set Authorization header for all requests
           curl -s "http://127.0.0.1:8090/JSON/replacer/action/addRule/?description=Authorization&enabled=true&matchType=REQ_HEADER&matchString=Authorization&replacement=Bearer%20${{ env.ZAP_ACCESS_TOKEN }}"
 
-          # Spider the target
-          SCAN_ID=$(curl -s "http://127.0.0.1:8090/JSON/spider/action/scan/?url=${{ vars.ZAP_TARGET_URL }}&maxChildren=10&recurse=true" | jq -r '.scan')
+          # Create a context
+          CONTEXT_ID=$(curl -s "http://127.0.0.1:8090/JSON/context/action/newContext/?contextName=IncidentHub" | jq -r '.contextId')
+          echo "Context ID: $CONTEXT_ID"
+
+          # Include all API endpoints in context
+          curl -s "http://127.0.0.1:8090/JSON/context/action/includeInContext/?contextName=IncidentHub&regex=http://localhost:8880/api/.*"
+          curl -s "http://127.0.0.1:8090/JSON/context/action/includeInContext/?contextName=IncidentHub&regex=http://localhost:8880/actuator/.*"
+
+          # Manually add all known API endpoints to ZAP
+          curl -s "http://127.0.0.1:8090/JSON/core/action/accessUrl/?url=http://localhost:8880/api/incidents&followRedirects=true"
+          curl -s "http://127.0.0.1:8090/JSON/core/action/accessUrl/?url=http://localhost:8880/api/users&followRedirects=true"
+          curl -s "http://127.0.0.1:8090/JSON/core/action/accessUrl/?url=http://localhost:8880/api/commentaires&followRedirects=true"
+          curl -s "http://127.0.0.1:8090/JSON/core/action/accessUrl/?url=http://localhost:8880/api/chat&followRedirects=true"
+
+          # Spider within the context
+          SCAN_ID=$(curl -s "http://127.0.0.1:8090/JSON/spider/action/scan/?url=http://localhost:8880/api/&contextName=IncidentHub&maxChildren=10&recurse=true" | jq -r '.scan')
           echo "Spider scan ID: $SCAN_ID"
           sleep 30
 
-          # Active scan
-          ASCAN_ID=$(curl -s "http://127.0.0.1:8090/JSON/ascan/action/scan/?url=${{ vars.ZAP_TARGET_URL }}&recurse=true" | jq -r '.scan')
+          # Active scan within context
+          ASCAN_ID=$(curl -s "http://127.0.0.1:8090/JSON/ascan/action/scan/?url=http://localhost:8880/api/&contextId=$CONTEXT_ID&recurse=true" | jq -r '.scan')
           echo "Active scan ID: $ASCAN_ID"
 
           # Wait for active scan to complete
@@ -184,6 +198,8 @@ jobs:
           curl -s "http://127.0.0.1:8090/OTHER/core/other/xmlreport/" > report.xml
           curl -s "http://127.0.0.1:8090/OTHER/core/other/mdreport/" > report.md
           echo "Reports generated!"
+
+          # Clean up ZAP container
         continue-on-error: true
 
       - name: Upload ZAP Report
