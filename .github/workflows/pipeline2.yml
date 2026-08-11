@@ -131,12 +131,13 @@ jobs:
             -d "username=${{ secrets.ZAP_USERNAME }}" \
             -d "password=${{ secrets.ZAP_PASSWORD }}" \
             | jq -r '.access_token')
+          
+          echo "::add-mask::$ZAP_ACCESS_TOKEN"
           echo "ZAP_ACCESS_TOKEN=$ZAP_ACCESS_TOKEN" >> $GITHUB_ENV
           echo "Token fetched successfully"
 
       - name: Start ZAP Daemon
         run: |
-          # Remove existing ZAP container if it exists
           docker rm -f zap || true
 
           docker run -d --name zap \
@@ -150,6 +151,7 @@ jobs:
             -config api.addrs.addr.name=.* \
             -config api.addrs.addr.regex=true \
             -config proxy.port=8092
+
           until curl -s http://127.0.0.1:8090/JSON/core/view/version/ | grep -q version; do
             echo "Waiting for ZAP..."
             sleep 10
@@ -157,6 +159,7 @@ jobs:
           echo "ZAP is ready!"
 
       - name: Run ZAP Authenticated Scan
+        continue-on-error: true
         run: |
           # Set Authorization header - encode the token properly
           TOKEN="${{ env.ZAP_ACCESS_TOKEN }}"
@@ -187,7 +190,13 @@ jobs:
           # Spider within the context
           SCAN_ID=$(curl -s "http://127.0.0.1:8090/JSON/spider/action/scan/?url=http://localhost:8880/api/&contextName=IncidentHub&maxChildren=10&recurse=true" | jq -r '.scan')
           echo "Spider scan ID: $SCAN_ID"
-          sleep 30
+          
+          while true; do
+            SPIDER_STATUS=$(curl -s "http://127.0.0.1:8090/JSON/spider/view/status/?scanId=$SCAN_ID" | jq -r '.status')
+            echo "Spider progress: $SPIDER_STATUS%"
+            if [ "$SPIDER_STATUS" = "100" ] || [ -z "$SPIDER_STATUS" ] || [ "$SPIDER_STATUS" = "null" ]; then break; fi
+            sleep 5
+          done
 
           # Active scan within context
           ASCAN_ID=$(curl -s "http://127.0.0.1:8090/JSON/ascan/action/scan/?url=http://localhost:8880/api/&contextId=$CONTEXT_ID&recurse=true" | jq -r '.scan')
@@ -197,7 +206,7 @@ jobs:
           while true; do
             STATUS=$(curl -s "http://127.0.0.1:8090/JSON/ascan/view/status/?scanId=$ASCAN_ID" | jq -r '.status')
             echo "Scan progress: $STATUS%"
-            if [ "$STATUS" = "100" ]; then break; fi
+            if [ "$STATUS" = "100" ] || [ -z "$STATUS" ] || [ "$STATUS" = "null" ]; then break; fi
             sleep 15
           done
 
@@ -207,8 +216,6 @@ jobs:
           curl -s "http://127.0.0.1:8090/OTHER/core/other/xmlreport/" > report.xml
           curl -s "http://127.0.0.1:8090/OTHER/core/other/mdreport/" > report.md
           echo "Reports generated!"
-
-        continue-on-error: true
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
