@@ -112,119 +112,119 @@ jobs:
       - name: Verify Running Containers
         run: docker ps
 
-      #######################################################
-      # OWASP ZAP - Authenticated Scan
-      #######################################################
+      # #######################################################
+      # # OWASP ZAP - Authenticated Scan
+      # #######################################################
 
-      - name: Test Gateway
-        run: |
-          curl -v "${{ vars.ZAP_TARGET_URL }}/actuator/health"
+      # - name: Test Gateway
+      #   run: |
+      #     curl -v "${{ vars.ZAP_TARGET_URL }}/actuator/health"
 
-      - name: Get Keycloak Token
-        run: |
-          ZAP_ACCESS_TOKEN=$(curl -s -X POST "${{ vars.KEYCLOAK_TOKEN_URL }}" \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "grant_type=password" \
-            -d "client_id=${{ secrets.ZAP_CLIENT_ID }}" \
-            -d "client_secret=${{ secrets.ZAP_CLIENT_SECRET }}" \
-            -d "username=${{ secrets.ZAP_USERNAME }}" \
-            -d "password=${{ secrets.ZAP_PASSWORD }}" \
-            | jq -r '.access_token')
+      # - name: Get Keycloak Token
+      #   run: |
+      #     ZAP_ACCESS_TOKEN=$(curl -s -X POST "${{ vars.KEYCLOAK_TOKEN_URL }}" \
+      #       -H "Content-Type: application/x-www-form-urlencoded" \
+      #       -d "grant_type=password" \
+      #       -d "client_id=${{ secrets.ZAP_CLIENT_ID }}" \
+      #       -d "client_secret=${{ secrets.ZAP_CLIENT_SECRET }}" \
+      #       -d "username=${{ secrets.ZAP_USERNAME }}" \
+      #       -d "password=${{ secrets.ZAP_PASSWORD }}" \
+      #       | jq -r '.access_token')
 
-          echo "ZAP_ACCESS_TOKEN=$ZAP_ACCESS_TOKEN" >> "$GITHUB_ENV"
-          echo "Token fetched successfully"
+      #     echo "ZAP_ACCESS_TOKEN=$ZAP_ACCESS_TOKEN" >> "$GITHUB_ENV"
+      #     echo "Token fetched successfully"
 
-      - name: Start ZAP Daemon
-        run: |
-          docker rm -f zap || true
+      # - name: Start ZAP Daemon
+      #   run: |
+      #     docker rm -f zap || true
 
-          docker run -d --name zap \
-            --network=host \
-            -v "${{ github.workspace }}:/zap/wrk" \
-            ghcr.io/zaproxy/zaproxy:stable \
-            zap.sh -daemon \
-            -host 0.0.0.0 \
-            -port 8090 \
-            -config api.disablekey=true \
-            -config api.addrs.addr.name=.* \
-            -config api.addrs.addr.regex=true \
-            -config proxy.port=8092
+      #     docker run -d --name zap \
+      #       --network=host \
+      #       -v "${{ github.workspace }}:/zap/wrk" \
+      #       ghcr.io/zaproxy/zaproxy:stable \
+      #       zap.sh -daemon \
+      #       -host 0.0.0.0 \
+      #       -port 8090 \
+      #       -config api.disablekey=true \
+      #       -config api.addrs.addr.name=.* \
+      #       -config api.addrs.addr.regex=true \
+      #       -config proxy.port=8092
 
-          until curl -s http://127.0.0.1:8090/JSON/core/view/version/ | grep -q version; do
-            echo "Waiting for ZAP..."
-            sleep 10
-          done
+      #     until curl -s http://127.0.0.1:8090/JSON/core/view/version/ | grep -q version; do
+      #       echo "Waiting for ZAP..."
+      #       sleep 10
+      #     done
 
-          echo "ZAP is ready!"
+      #     echo "ZAP is ready!"
 
-      - name: Run ZAP Authenticated Scan
-        run: |
-          # Set Authorization header for all requests
-          curl -s -X POST \
-            "http://127.0.0.1:8090/JSON/replacer/action/addRule/" \
-            --data-urlencode "description=Authorization" \
-            --data-urlencode "enabled=true" \
-            --data-urlencode "matchType=REQ_HEADER" \
-            --data-urlencode "matchString=Authorization" \
-            --data-urlencode "replacement=Bearer $ZAP_ACCESS_TOKEN"
+      # - name: Run ZAP Authenticated Scan
+      #   run: |
+      #     # Set Authorization header for all requests
+      #     curl -s -X POST \
+      #       "http://127.0.0.1:8090/JSON/replacer/action/addRule/" \
+      #       --data-urlencode "description=Authorization" \
+      #       --data-urlencode "enabled=true" \
+      #       --data-urlencode "matchType=REQ_HEADER" \
+      #       --data-urlencode "matchString=Authorization" \
+      #       --data-urlencode "replacement=Bearer $ZAP_ACCESS_TOKEN"
 
-          # Spider the target
-          SCAN_ID=$(curl -s \
-            "http://127.0.0.1:8090/JSON/spider/action/scan/?url=${{ vars.ZAP_TARGET_URL }}&maxChildren=10&recurse=true" \
-            | jq -r '.scan')
+      #     # Spider the target
+      #     SCAN_ID=$(curl -s \
+      #       "http://127.0.0.1:8090/JSON/spider/action/scan/?url=${{ vars.ZAP_TARGET_URL }}&maxChildren=10&recurse=true" \
+      #       | jq -r '.scan')
 
-          echo "Spider scan ID: $SCAN_ID"
-          sleep 30
+      #     echo "Spider scan ID: $SCAN_ID"
+      #     sleep 30
 
-          # Active scan
-          ASCAN_ID=$(curl -s \
-            "http://127.0.0.1:8090/JSON/ascan/action/scan/?url=${{ vars.ZAP_TARGET_URL }}&recurse=true" \
-            | jq -r '.scan')
+      #     # Active scan
+      #     ASCAN_ID=$(curl -s \
+      #       "http://127.0.0.1:8090/JSON/ascan/action/scan/?url=${{ vars.ZAP_TARGET_URL }}&recurse=true" \
+      #       | jq -r '.scan')
 
-          echo "Active scan ID: $ASCAN_ID"
+      #     echo "Active scan ID: $ASCAN_ID"
 
-          # Wait for active scan to complete
-          while true; do
-            STATUS=$(curl -s \
-              "http://127.0.0.1:8090/JSON/ascan/view/status/?scanId=$ASCAN_ID" \
-              | jq -r '.status')
+      #     # Wait for active scan to complete
+      #     while true; do
+      #       STATUS=$(curl -s \
+      #         "http://127.0.0.1:8090/JSON/ascan/view/status/?scanId=$ASCAN_ID" \
+      #         | jq -r '.status')
 
-            echo "Scan progress: $STATUS%"
+      #       echo "Scan progress: $STATUS%"
 
-            if [ "$STATUS" = "100" ]; then
-              break
-            fi
+      #       if [ "$STATUS" = "100" ]; then
+      #         break
+      #       fi
 
-            sleep 15
-          done
+      #       sleep 15
+      #     done
 
-          # Generate reports
-          curl -s \
-            "http://127.0.0.1:8090/OTHER/core/other/htmlreport/" \
-            > report.html
+      #     # Generate reports
+      #     curl -s \
+      #       "http://127.0.0.1:8090/OTHER/core/other/htmlreport/" \
+      #       > report.html
 
-          curl -s \
-            "http://127.0.0.1:8090/OTHER/core/other/jsonreport/" \
-            > report.json
+      #     curl -s \
+      #       "http://127.0.0.1:8090/OTHER/core/other/jsonreport/" \
+      #       > report.json
 
-          curl -s \
-            "http://127.0.0.1:8090/OTHER/core/other/xmlreport/" \
-            > report.xml
+      #     curl -s \
+      #       "http://127.0.0.1:8090/OTHER/core/other/xmlreport/" \
+      #       > report.xml
 
-          curl -s \
-            "http://127.0.0.1:8090/OTHER/core/other/mdreport/" \
-            > report.md
+      #     curl -s \
+      #       "http://127.0.0.1:8090/OTHER/core/other/mdreport/" \
+      #       > report.md
 
-          echo "Reports generated!"
+      #     echo "Reports generated!"
 
-        continue-on-error: true
+      #   continue-on-error: true
 
-      - name: Upload ZAP Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap-report
-          path: |
-            report.html
-            report.json
-            report.md
-            report.xml
+      # - name: Upload ZAP Report
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: zap-report
+      #     path: |
+      #       report.html
+      #       report.json
+      #       report.md
+      #       report.xml

@@ -19,7 +19,6 @@ global:
 
 route:
   receiver: default-receiver
-
   group_by:
     - alertname
     - severity
@@ -30,12 +29,12 @@ route:
   repeat_interval: 2h
 
   routes:
-
+    
     # Security incidents
     - matchers:
         - category="security"
       receiver: security-receiver
-
+   
     # Critical alerts
     - matchers:
         - severity="critical"
@@ -72,18 +71,36 @@ receivers:
     email_configs:
       - to: "CHANGE_ME@gmail.com"
         send_resolved: true
+    webhook_configs:
+      - url: "http://incident-response:5000/webhook"
+        send_resolved: true
 
   - name: critical-receiver
     email_configs:
       - to: "CHANGE_ME@gmail.com"
         send_resolved: true
+    webhook_configs:
+      - url: "http://incident-response:5000/webhook"
+        send_resolved: true
+
 
   - name: security-receiver
     email_configs:
       - to: "CHANGE_ME@gmail.com"
         send_resolved: true
+    webhook_configs:
+      - url: "http://incident-response:5000/webhook"
+        send_resolved: true
+
 
   - name: infrastructure-receiver
     email_configs:
       - to: "CHANGE_ME@gmail.com"
         send_resolved: true
+    webhook_configs:
+      - url: "http://incident-response:5000/webhook"
+        send_resolved: true
+
+  - name: incident-response
+    webhook_configs:
+      - url: "http://incident-response:5000/webhook"
