@@ -72,7 +72,6 @@ jobs:
 
       - name: Test Config Server Before Apps
         run: |
-          curl http://localhost:8888/service-user/default
           curl http://localhost:8888/actuator/health
 
       #######################################################

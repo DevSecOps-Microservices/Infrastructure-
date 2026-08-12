@@ -71,6 +71,7 @@ receivers:
     email_configs:
       - to: "CHANGE_ME@gmail.com"
         send_resolved: true
+
     webhook_configs:
       - url: "http://incident-response:5000/webhook"
         send_resolved: true
