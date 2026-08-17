@@ -25,7 +25,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 40s
+      start_period: 120s
     deploy:
       resources:
         limits:
@@ -61,10 +61,10 @@ services:
       - incidents-network
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8888/actuator/health || exit 1"]
-      interval: 30s
+      interval: 10s
       timeout: 10s
-      retries: 5
-      start_period: 60s
+      retries: 12
+      start_period: 120
     deploy:
       resources:
         limits:
