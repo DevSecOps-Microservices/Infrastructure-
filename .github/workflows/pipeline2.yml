@@ -65,7 +65,7 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/platform.yml \
-            up -d --force-recreate
+            up -d
 
       - name: Wait for Platform
         run: sleep 300
@@ -84,7 +84,7 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/application.yml \
-            up -d --force-recreate
+            up -d
 
       - name: Wait for Applications
         run: sleep 120
@@ -99,7 +99,7 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/monitoring.yml \
-            up -d --force-recreate
+            up -d
 
       - name: Wait for Monitoring
         run: sleep 300
