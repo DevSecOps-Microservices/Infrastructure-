@@ -65,10 +65,10 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/platform.yml \
-            up -d
+            up -d --force-recreate
 
       - name: Wait for Platform
-        run: sleep 20
+        run: sleep 300
 
       - name: Test Config Server Before Apps
         run: |
@@ -84,10 +84,10 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/application.yml \
-            up -d
+            up -d --force-recreate
 
       - name: Wait for Applications
-        run: sleep 20
+        run: sleep 120
 
       #######################################################
       # Deploy Monitoring
@@ -99,10 +99,10 @@ jobs:
             --env-file compose/.env \
             --env-file compose/versions.env \
             -f compose/monitoring.yml \
-            up -d
+            up -d --force-recreate
 
       - name: Wait for Monitoring
-        run: sleep 20
+        run: sleep 300
 
       #######################################################
       # Health Checks
