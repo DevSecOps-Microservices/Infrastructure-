@@ -27,7 +27,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 120s
+      start_period: 240s
     deploy:
       resources:
         limits:
@@ -57,7 +57,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 90s
+      start_period: 240s
     deploy:
       resources:
         limits:
@@ -87,7 +87,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 120s
+      start_period: 240s
     deploy:
       resources:
         limits:
@@ -117,7 +117,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 120s
+      start_period: 240s
     deploy:
       resources:
         limits:
@@ -147,7 +147,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 240s
 
   # ===========================================================
   # ADMIN DASHBOARD (React)
@@ -169,7 +169,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 240s
 
   # ===========================================================
   # GATEWAY-SERVICE - Single entry point for all requests
