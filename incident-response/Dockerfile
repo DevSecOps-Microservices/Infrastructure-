@@ -10,3 +10,5 @@ COPY app.py .
 EXPOSE 5000
 
 CMD ["python","-u" ,"app.py"]
+
+RUN pip install flask docker

@@ -220,6 +220,8 @@ services:
     build:
       context: ../incident-response
     container_name: incident-response
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - incidents-network
     expose:

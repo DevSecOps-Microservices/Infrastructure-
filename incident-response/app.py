@@ -1,21 +1,50 @@
 from flask import Flask, request, jsonify
+from playbooks.service_down import restart_service
 
 app = Flask(__name__)
 
 
+@app.route("/")
+def home():
+    return "Incident Response Service"
+
+
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    alert_data = request.get_json()
+    data = request.get_json()
 
-    print("=== ALERTMANAGER ALERT RECEIVED ===")
-    print(alert_data)
+    print("[WEBHOOK] Alert received", flush=True)
 
-    return jsonify({"status": "received"}), 200
+    for alert in data.get("alerts", []):
+        status = alert.get("status")
+        labels = alert.get("labels", {})
 
+        alert_name = labels.get("alertname")
+        service = labels.get("service")
 
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({"status": "UP"}), 200
+        print(
+            f"[WEBHOOK] alert={alert_name}, "
+            f"status={status}, service={service}",
+            flush=True
+        )
+
+        if status == "firing" and alert_name == "ServiceDown":
+            if service:
+                print(
+                    f"[PLAYBOOK] Executing service-down playbook "
+                    f"for {service}",
+                    flush=True
+                )
+
+                restart_service(service)
+
+            else:
+                print(
+                    "[PLAYBOOK] No service specified in alert",
+                    flush=True
+                )
+
+    return jsonify({"status": "processed"}), 200
 
 
 if __name__ == "__main__":
