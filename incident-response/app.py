@@ -20,7 +20,7 @@ def webhook():
         labels = alert.get("labels", {})
 
         alert_name = labels.get("alertname")
-        service = labels.get("service")
+        service = labels.get("application")
 
         print(
             f"[WEBHOOK] alert={alert_name}, "
