@@ -194,7 +194,6 @@ services:
     volumes:
     - /:/rootfs:ro
     - /var/run:/var/run:ro
-    - /var/run/docker.sock:/var/run/docker.sock:ro
     - /sys:/sys:ro
     - /var/lib/docker:/var/lib/docker:ro
     - /dev/disk:/dev/disk:ro
@@ -202,6 +201,8 @@ services:
 
     command:
       - "--docker_only=true"
+      - "--disable_metrics=disk,diskIO,percpu,sched,process,hugetlb,referenced_memory,resctrl,tcp,udp"
+      - "--housekeeping_interval=30s"
 
     networks:
       - incidents-network

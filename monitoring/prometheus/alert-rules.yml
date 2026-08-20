@@ -228,3 +228,32 @@ groups:
       description: >
         HikariCP reported connection
         timeouts during the last five minutes.
+
+# =============================================================
+# DDoS/ SQLi
+# =============================================================
+  - name: security-alerts
+    rules:
+      # Works NOW — pure infra metric, no code changes needed
+      - alert: PossibleDDoS
+        expr: |
+          rate(container_network_receive_bytes_total{name="gateway-service"}[1m]) > 5000000
+        for: 30s
+        labels:
+          severity: critical
+          category: security
+          application: gateway-service
+        annotations:
+          summary: "Abnormal inbound traffic on gateway-service"
+          description: "gateway-service receiving {{ $value | humanize }}B/s, possible DDoS."
+
+
+      - alert: PossibleSQLInjection
+        expr: |
+          count_over_time({service="gateway-service"} |~ `(?i)(union.*select|or 1=1|drop table|--\s|;--)` [1m]) > 0
+        labels:
+          severity: critical
+          category: security
+          application: gateway-service
+        annotations:
+          summary: "Suspicious SQL pattern detected in gateway-service traffic"
