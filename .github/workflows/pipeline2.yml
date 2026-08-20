@@ -107,21 +107,22 @@ jobs:
       #######################################################
       # Health Checks
       #######################################################
-
       - name: Verify Running Containers
         run: docker ps
 
-
-        docker run --rm \
-          --network=host \
-          -v /opt/actions-runner/_work/Infrastructure-:/zap/wrk \
-          ghcr.io/zaproxy/zaproxy:stable \
-          zap-baseline.py \
-          -t http://localhost:8880 \
-          -r report.html \
-          -J report.json \
-          -w report.md \
-          -x report.xml
+      - name: Security Scan (ZAP)
+        run: |
+          docker run --rm \
+            --network=host \
+            -v /opt/actions-runner/_work/Infrastructure-:/zap/wrk \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://localhost:8880 \
+            -r report.html \
+            -J report.json \
+            -w report.md \
+            -x report.xml \
+            -I
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
@@ -130,6 +131,8 @@ jobs:
           path: |
             /opt/actions-runner/_work/Infrastructure-/report.html
             /opt/actions-runner/_work/Infrastructure-/report.json
+
+
       # #######################################################
       # # OWASP ZAP - Authenticated Scan
       # #######################################################
