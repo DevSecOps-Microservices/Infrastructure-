@@ -112,16 +112,17 @@ jobs:
         run: docker ps
 
 
-      docker run --rm \
-        --network=host \
-        -v /opt/actions-runner/_work/Infrastructure-:/zap/wrk \
-        ghcr.io/zaproxy/zaproxy:stable \
-        zap-baseline.py \
-        -t http://localhost:8880 \
-        -r report.html \
-        -J report.json \
-        -w report.md \
-        -x report.xml
+        docker run --rm \
+          --network=host \
+          -v /opt/actions-runner/_work/Infrastructure-:/zap/wrk \
+          ghcr.io/zaproxy/zaproxy:stable \
+          zap-baseline.py \
+          -t http://localhost:8880 \
+          -r report.html \
+          -J report.json \
+          -w report.md \
+          -x report.xml
+
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
