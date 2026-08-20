@@ -116,7 +116,7 @@ jobs:
             --network=host \
             -v /opt/actions-runner/_work/Infrastructure-:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py \
+            zap-full-scan.py \
             -t http://localhost:8880 \
             -r report.html \
             -J report.json \
